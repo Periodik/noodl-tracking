@@ -14,13 +14,17 @@ export async function GET() {
     return NextResponse.json(wasteEntries)
   } catch (error) {
     console.error('Error fetching waste entries:', error)
-    return NextResponse.json({ error: 'Failed to fetch waste entries' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to fetch waste entries',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Creating waste entry with data:', body)
     
     // Create waste entry
     const wasteEntry = await prisma.wasteEntry.create({
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
         thawed_batch_id: body.thawed_batch_id || null,
         batch_type: body.batch_type || null,
         date_discarded: new Date(),
-        quantity_discarded: body.quantity_discarded,
+        quantity_discarded: parseInt(body.quantity_discarded),
         reason: body.reason,
         notes: body.notes || null,
         discarded_by: body.discarded_by || null
@@ -40,13 +44,15 @@ export async function POST(request: NextRequest) {
       }
     })
     
+    const quantityDiscarded = parseInt(body.quantity_discarded)
+    
     // Update the appropriate batch quantities
     if (body.batch_type === 'thawed' && body.thawed_batch_id) {
       await prisma.thawedBatch.update({
         where: { id: body.thawed_batch_id },
         data: {
           remaining_portions: {
-            decrement: body.quantity_discarded
+            decrement: quantityDiscarded
           }
         }
       })
@@ -55,15 +61,19 @@ export async function POST(request: NextRequest) {
         where: { id: body.purchase_batch_id },
         data: {
           remaining_portions: {
-            decrement: body.quantity_discarded
+            decrement: quantityDiscarded
           }
         }
       })
     }
     
+    console.log('Waste entry created successfully:', wasteEntry)
     return NextResponse.json(wasteEntry)
   } catch (error) {
     console.error('Error creating waste entry:', error)
-    return NextResponse.json({ error: 'Failed to create waste entry' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to create waste entry',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

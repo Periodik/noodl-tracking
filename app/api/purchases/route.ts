@@ -15,13 +15,17 @@ export async function GET() {
     return NextResponse.json(purchases)
   } catch (error) {
     console.error('Error fetching purchases:', error)
-    return NextResponse.json({ error: 'Failed to fetch purchases' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to fetch purchases',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Creating purchase with data:', body)
     
     // Get product to calculate portions
     const product = await prisma.product.findUnique({
@@ -32,18 +36,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
     
-    const portionCount = Math.floor(body.quantity_received / product.portion_size)
+    const portionCount = Math.floor(parseFloat(body.quantity_received) / product.portion_size)
     
     const purchase = await prisma.purchaseBatch.create({
       data: {
         product_id: body.product_id,
         purchase_date: new Date(body.purchase_date),
         best_before_date: new Date(body.best_before_date),
-        quantity_received: body.quantity_received,
+        quantity_received: parseFloat(body.quantity_received),
         quantity_unit: body.quantity_unit,
         portioned_count: portionCount,
         remaining_portions: portionCount,
-        cost_per_unit: body.cost_per_unit || null,
+        cost_per_unit: body.cost_per_unit ? parseFloat(body.cost_per_unit) : null,
         supplier: body.supplier || null,
         notes: body.notes || null
       },
@@ -52,16 +56,21 @@ export async function POST(request: NextRequest) {
       }
     })
     
+    console.log('Purchase created successfully:', purchase)
     return NextResponse.json(purchase)
   } catch (error) {
     console.error('Error creating purchase:', error)
-    return NextResponse.json({ error: 'Failed to create purchase' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to create purchase',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Updating purchase with data:', body)
     
     // Get product to recalculate portions
     const product = await prisma.product.findUnique({
@@ -72,18 +81,18 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
     
-    const portionCount = Math.floor(body.quantity_received / product.portion_size)
+    const portionCount = Math.floor(parseFloat(body.quantity_received) / product.portion_size)
     
     const purchase = await prisma.purchaseBatch.update({
       where: { id: body.id },
       data: {
         purchase_date: new Date(body.purchase_date),
         best_before_date: new Date(body.best_before_date),
-        quantity_received: body.quantity_received,
+        quantity_received: parseFloat(body.quantity_received),
         quantity_unit: body.quantity_unit,
         portioned_count: portionCount,
-        remaining_portions: body.remaining_portions || portionCount,
-        cost_per_unit: body.cost_per_unit || null,
+        remaining_portions: parseInt(body.remaining_portions) || portionCount,
+        cost_per_unit: body.cost_per_unit ? parseFloat(body.cost_per_unit) : null,
         supplier: body.supplier || null,
         notes: body.notes || null
       },
@@ -95,6 +104,9 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json(purchase)
   } catch (error) {
     console.error('Error updating purchase:', error)
-    return NextResponse.json({ error: 'Failed to update purchase' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Failed to update purchase',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
