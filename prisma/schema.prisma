@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+model Product {
+  id                String @id @default(cuid())
+  name              String
+  received_state    String // "Cold" or "Frozen"
+  portion_size      Float
+  portion_unit      String
+  shelf_life_fresh  Int
+  shelf_life_thawed Int
+  track_by_unit     Boolean @default(false)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  // Relations
+  purchase_batches  PurchaseBatch[]
+  waste_entries     WasteEntry[]
+
+  @@map("products")
+}
+
+model PurchaseBatch {
+  id                 String @id @default(cuid())
+  product_id         String
+  purchase_date      DateTime
+  best_before_date   DateTime
+  quantity_received  Float
+  quantity_unit      String
+  portioned_count    Int
+  remaining_portions Int
+  cost_per_unit      Float?
+  supplier           String?
+  notes              String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  // Relations
+  product            Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  thawed_batches     ThawedBatch[]
+  waste_entries      WasteEntry[] @relation("PurchaseBatchWaste")
+
+  @@map("purchase_batches")
+}
+
+model ThawedBatch {
+  id                 String @id @default(cuid())
+  purchase_batch_id  String
+  thaw_date          DateTime
+  portions_thawed    Int
+  expiry_date        DateTime
+  status             String @default("active") // "active", "expired", "used"
+  remaining_portions Int
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  // Relations
+  purchase_batch     PurchaseBatch @relation(fields: [purchase_batch_id], references: [id], onDelete: Cascade)
+  waste_entries      WasteEntry[] @relation("ThawedBatchWaste")
+
+  @@map("thawed_batches")
+}
+
+model WasteEntry {
+  id                 String @id @default(cuid())
+  product_id         String
+  purchase_batch_id  String?
+  thawed_batch_id    String?
+  batch_type         String? // "purchase" or "thawed"
+  date_discarded     DateTime
+  quantity_discarded Int
+  reason             String // "expired", "spoiled", "contaminated", "other"
+  notes              String?
+  discarded_by       String?
+  created_at         DateTime @default(now())
+
+  // Relations
+  product            Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  purchase_batch     PurchaseBatch? @relation("PurchaseBatchWaste", fields: [purchase_batch_id], references: [id], onDelete: SetNull)
+  thawed_batch       ThawedBatch? @relation("ThawedBatchWaste", fields: [thawed_batch_id], references: [id], onDelete: SetNull)
+
+  @@map("waste_entries")
+}
+
+model UsageEntry {
+  id            String @id @default(cuid())
+  product_id    String
+  date_used     DateTime
+  quantity_used Int
+  batch_id      String?
+  notes         String?
+  created_at    DateTime @default(now())
+
+  @@map("usage_entries")
+}

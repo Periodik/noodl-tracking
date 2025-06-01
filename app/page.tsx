@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Calendar, AlertTriangle, Package, Trash2, Edit, Eye, X, Check } from 'lucide-react';
+import { Plus, Calendar, AlertTriangle, Package, Trash2, Edit, Eye, X, Check, Loader2 } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -12,6 +12,8 @@ interface Product {
   shelf_life_fresh: number;
   shelf_life_thawed: number;
   track_by_unit: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface PurchaseBatch {
@@ -23,6 +25,11 @@ interface PurchaseBatch {
   quantity_unit: string;
   portioned_count: number;
   remaining_portions: number;
+  cost_per_unit?: number;
+  supplier?: string;
+  notes?: string;
+  product?: Product;
+  thawed_batches?: ThawedBatch[];
 }
 
 interface ThawedBatch {
@@ -33,6 +40,9 @@ interface ThawedBatch {
   expiry_date: string;
   status: string;
   remaining_portions: number;
+  purchase_batch?: {
+    product?: Product;
+  };
 }
 
 interface Alert {
@@ -49,256 +59,83 @@ interface Alert {
 
 interface WasteEntry {
   id: string;
-  product_name: string;
-  batch_id: string;
+  product_id: string;
+  purchase_batch_id?: string;
+  thawed_batch_id?: string;
   batch_type?: string;
   date_discarded: string;
   quantity_discarded: number;
   reason: string;
   notes?: string;
+  discarded_by?: string;
+  product?: Product;
 }
 
 const NOODLTrackingApp = () => {
-  // Initialize with actual ramen shop toppings data
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 'prod_001',
-      name: 'Mozzarella Cheese',
-      received_state: 'Cold',
-      portion_size: 25,
-      portion_unit: 'g',
-      shelf_life_fresh: 7,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_002',
-      name: 'American Cheddar',
-      received_state: 'Cold',
-      portion_size: 25,
-      portion_unit: 'g',
-      shelf_life_fresh: 25,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_003',
-      name: 'Eggs',
-      received_state: 'Cold',
-      portion_size: 1,
-      portion_unit: 'unit',
-      shelf_life_fresh: 28,
-      shelf_life_thawed: 0,
-      track_by_unit: true
-    },
-    {
-      id: 'prod_004',
-      name: 'Enoki Mushroom',
-      received_state: 'Cold',
-      portion_size: 20,
-      portion_unit: 'g',
-      shelf_life_fresh: 10,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_005',
-      name: 'Baby Bok Choy',
-      received_state: 'Cold',
-      portion_size: 30,
-      portion_unit: 'g',
-      shelf_life_fresh: 6,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_006',
-      name: 'Kimchi',
-      received_state: 'Cold',
-      portion_size: 25,
-      portion_unit: 'g',
-      shelf_life_fresh: 180,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_007',
-      name: 'Rice Cake',
-      received_state: 'Cold',
-      portion_size: 2,
-      portion_unit: 'unit',
-      shelf_life_fresh: 2,
-      shelf_life_thawed: 0,
-      track_by_unit: true
-    },
-    {
-      id: 'prod_008',
-      name: 'Rice (Cooked)',
-      received_state: 'Cold',
-      portion_size: 50,
-      portion_unit: 'g',
-      shelf_life_fresh: 4,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_009',
-      name: 'Tofu Mi-Ferme',
-      received_state: 'Cold',
-      portion_size: 40,
-      portion_unit: 'g',
-      shelf_life_fresh: 6,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_010',
-      name: 'Beansprout',
-      received_state: 'Cold',
-      portion_size: 25,
-      portion_unit: 'g',
-      shelf_life_fresh: 3,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_011',
-      name: 'Ham',
-      received_state: 'Cold',
-      portion_size: 20,
-      portion_unit: 'g',
-      shelf_life_fresh: 4,
-      shelf_life_thawed: 0,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_012',
-      name: 'Cooked Chicken',
-      received_state: 'Frozen',
-      portion_size: 35,
-      portion_unit: 'g',
-      shelf_life_fresh: 0,
-      shelf_life_thawed: 4,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_013',
-      name: 'Shabu Meat',
-      received_state: 'Frozen',
-      portion_size: 40,
-      portion_unit: 'g',
-      shelf_life_fresh: 0,
-      shelf_life_thawed: 2,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_014',
-      name: 'Imitation Crab',
-      received_state: 'Frozen',
-      portion_size: 25,
-      portion_unit: 'g',
-      shelf_life_fresh: 0,
-      shelf_life_thawed: 4,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_015',
-      name: 'Bacon Bits',
-      received_state: 'Frozen',
-      portion_size: 15,
-      portion_unit: 'g',
-      shelf_life_fresh: 0,
-      shelf_life_thawed: 6,
-      track_by_unit: false
-    },
-    {
-      id: 'prod_016',
-      name: 'Shrimp',
-      received_state: 'Frozen',
-      portion_size: 6,
-      portion_unit: 'unit',
-      shelf_life_fresh: 0,
-      shelf_life_thawed: 2,
-      track_by_unit: true
-    },
-    {
-      id: 'prod_017',
-      name: 'Corn',
-      received_state: 'Frozen',
-      portion_size: 20,
-      portion_unit: 'g',
-      shelf_life_fresh: 0,
-      shelf_life_thawed: 4,
-      track_by_unit: false
-    }
-  ]);
-
-  const [purchaseBatches, setPurchaseBatches] = useState<PurchaseBatch[]>([
-    {
-      id: 'batch_001',
-      product_id: 'prod_003',
-      purchase_date: '2025-05-15',
-      best_before_date: '2025-06-12',
-      quantity_received: 24,
-      quantity_unit: 'units',
-      portioned_count: 24,
-      remaining_portions: 20
-    },
-    {
-      id: 'batch_002',
-      product_id: 'prod_010',
-      purchase_date: '2025-05-30',
-      best_before_date: '2025-06-02',
-      quantity_received: 250,
-      quantity_unit: 'g',
-      portioned_count: 10,
-      remaining_portions: 8
-    },
-    {
-      id: 'batch_003',
-      product_id: 'prod_013',
-      purchase_date: '2025-05-28',
-      best_before_date: '2025-08-28',
-      quantity_received: 800,
-      quantity_unit: 'g',
-      portioned_count: 20,
-      remaining_portions: 18
-    },
-    {
-      id: 'batch_004',
-      product_id: 'prod_016',
-      purchase_date: '2025-05-29',
-      best_before_date: '2025-09-29',
-      quantity_received: 60,
-      quantity_unit: 'units',
-      portioned_count: 10,
-      remaining_portions: 10
-    }
-  ]);
-
-  const [thawedBatches, setThawedBatches] = useState<ThawedBatch[]>([
-    {
-      id: 'thaw_001',
-      purchase_batch_id: 'batch_003',
-      thaw_date: '2025-05-30',
-      portions_thawed: 2,
-      expiry_date: '2025-06-01',
-      status: 'active',
-      remaining_portions: 1
-    }
-  ]);
-
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  // State for data
+  const [products, setProducts] = useState<Product[]>([]);
+  const [purchaseBatches, setPurchaseBatches] = useState<PurchaseBatch[]>([]);
+  const [thawedBatches, setThawedBatches] = useState<ThawedBatch[]>([]);
   const [wasteLog, setWasteLog] = useState<WasteEntry[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+
+  // UI state
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
   const [formData, setFormData] = useState<any>({});
 
-  // Calculate alerts on component mount and data changes
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load all data on component mount
+  useEffect(() => {
+    loadAllData();
+  }, []);
+
+  // Generate alerts when data changes
   useEffect(() => {
     generateAlerts();
   }, [purchaseBatches, thawedBatches]);
+
+  const loadAllData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Load all data in parallel
+      const [productsRes, purchasesRes, thawedRes, wasteRes] = await Promise.all([
+        fetch('/api/products'),
+        fetch('/api/purchases'),
+        fetch('/api/thawed'),
+        fetch('/api/waste')
+      ]);
+
+      if (!productsRes.ok || !purchasesRes.ok || !thawedRes.ok || !wasteRes.ok) {
+        throw new Error('Failed to load data');
+      }
+
+      const [productsData, purchasesData, thawedData, wasteData] = await Promise.all([
+        productsRes.json(),
+        purchasesRes.json(),
+        thawedRes.json(),
+        wasteRes.json()
+      ]);
+
+      setProducts(productsData);
+      setPurchaseBatches(purchasesData);
+      setThawedBatches(thawedData);
+      setWasteLog(wasteData);
+
+    } catch (err) {
+      setError('Failed to load data. Please refresh the page.');
+      console.error('Error loading data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateAlerts = () => {
     const newAlerts: Alert[] = [];
@@ -306,7 +143,7 @@ const NOODLTrackingApp = () => {
     
     // Check purchase batches for best-before dates
     purchaseBatches.forEach(batch => {
-      const product = products.find(p => p.id === batch.product_id);
+      const product = batch.product || products.find(p => p.id === batch.product_id);
       const expiryDate = new Date(batch.best_before_date);
       const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
@@ -326,8 +163,9 @@ const NOODLTrackingApp = () => {
 
     // Check thawed batches
     thawedBatches.forEach(batch => {
-      const purchaseBatch = purchaseBatches.find(p => p.id === batch.purchase_batch_id);
-      const product = products.find(p => p.id === purchaseBatch?.product_id);
+      const product = batch.purchase_batch?.product || 
+                     purchaseBatches.find(p => p.id === batch.purchase_batch_id)?.product ||
+                     products.find(p => p.id === purchaseBatches.find(pb => pb.id === batch.purchase_batch_id)?.product_id);
       const expiryDate = new Date(batch.expiry_date);
       const daysUntilExpiry = Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       
@@ -364,93 +202,133 @@ const NOODLTrackingApp = () => {
   const closeModal = () => {
     setShowModal(false);
     setFormData({});
+    setError(null);
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError(null);
     
-    switch (modalType) {
-      case 'product':
-        if (formData.id) {
-          setProducts(products.map(p => p.id === formData.id ? formData : p));
-        } else {
-          const newProduct = { ...formData, id: `prod_${Date.now()}` };
-          setProducts([...products, newProduct]);
-        }
-        break;
-        
-      case 'purchase':
-        const portionCount = Math.floor(formData.quantity_received / 
-          (products.find(p => p.id === formData.product_id)?.portion_size || 1));
-        const newBatch = {
-          ...formData,
-          id: `batch_${Date.now()}`,
-          portioned_count: portionCount,
-          remaining_portions: portionCount
-        };
-        setPurchaseBatches([...purchaseBatches, newBatch]);
-        break;
-        
-      case 'thaw':
-        if (formData.portions_to_thaw) {
-          const product = products.find(p => p.id === formData.product_id);
-          const thawDate = new Date();
-          const expiryDate = new Date();
-          expiryDate.setDate(expiryDate.getDate() + (product?.shelf_life_thawed || 0));
+    try {
+      switch (modalType) {
+        case 'product':
+          const productMethod = formData.id ? 'PUT' : 'POST';
+          const productRes = await fetch('/api/products', {
+            method: productMethod,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
           
-          const newThawBatch = {
-            id: `thaw_${Date.now()}`,
-            purchase_batch_id: formData.batch_id,
-            thaw_date: thawDate.toISOString().split('T')[0],
-            portions_thawed: parseInt(formData.portions_to_thaw),
-            expiry_date: expiryDate.toISOString().split('T')[0],
-            status: 'active',
-            remaining_portions: parseInt(formData.portions_to_thaw)
-          };
+          if (!productRes.ok) throw new Error('Failed to save product');
           
-          setThawedBatches([...thawedBatches, newThawBatch]);
+          // Reload products
+          const productsRes = await fetch('/api/products');
+          const productsData = await productsRes.json();
+          setProducts(productsData);
+          break;
           
-          // Update original batch
-          setPurchaseBatches(batches => 
-            batches.map(b => 
-              b.id === formData.batch_id 
-                ? { ...b, remaining_portions: b.remaining_portions - parseInt(formData.portions_to_thaw) }
-                : b
-            )
-          );
-        }
-        break;
-        
-      case 'waste':
-        const wasteEntry = {
-          id: `waste_${Date.now()}`,
-          ...formData,
-          date_discarded: new Date().toISOString().split('T')[0]
-        };
-        setWasteLog([...wasteLog, wasteEntry]);
-        
-        // Update batch quantities
-        if (formData.batch_type === 'thawed') {
-          setThawedBatches(batches =>
-            batches.map(b =>
-              b.id === formData.batch_id
-                ? { ...b, remaining_portions: Math.max(0, b.remaining_portions - parseInt(formData.quantity_discarded)) }
-                : b
-            )
-          );
-        } else {
-          setPurchaseBatches(batches =>
-            batches.map(b =>
-              b.id === formData.batch_id
-                ? { ...b, remaining_portions: Math.max(0, b.remaining_portions - parseInt(formData.quantity_discarded)) }
-                : b
-            )
-          );
-        }
-        break;
+        case 'purchase':
+          const purchaseRes = await fetch('/api/purchases', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          
+          if (!purchaseRes.ok) throw new Error('Failed to save purchase');
+          
+          // Reload purchases
+          const purchasesRes = await fetch('/api/purchases');
+          const purchasesData = await purchasesRes.json();
+          setPurchaseBatches(purchasesData);
+          break;
+          
+        case 'editPurchase':
+          const editRes = await fetch('/api/purchases', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+          });
+          
+          if (!editRes.ok) throw new Error('Failed to update purchase');
+          
+          // Reload purchases
+          const updatedPurchasesRes = await fetch('/api/purchases');
+          const updatedPurchasesData = await updatedPurchasesRes.json();
+          setPurchaseBatches(updatedPurchasesData);
+          break;
+          
+        case 'thaw':
+          const thawRes = await fetch('/api/thawed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              purchase_batch_id: formData.batch_id,
+              portions_thawed: parseInt(formData.portions_to_thaw)
+            })
+          });
+          
+          if (!thawRes.ok) throw new Error('Failed to thaw portions');
+          
+          // Reload both purchases and thawed data
+          const [newPurchasesRes, newThawedRes] = await Promise.all([
+            fetch('/api/purchases'),
+            fetch('/api/thawed')
+          ]);
+          
+          const [newPurchasesData, newThawedData] = await Promise.all([
+            newPurchasesRes.json(),
+            newThawedRes.json()
+          ]);
+          
+          setPurchaseBatches(newPurchasesData);
+          setThawedBatches(newThawedData);
+          break;
+          
+        case 'waste':
+          const wasteRes = await fetch('/api/waste', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              product_id: formData.product_id || 
+                         purchaseBatches.find(b => b.id === formData.batch_id)?.product_id ||
+                         thawedBatches.find(b => b.id === formData.batch_id)?.purchase_batch?.product?.id,
+              purchase_batch_id: formData.batch_type === 'purchase' ? formData.batch_id : null,
+              thawed_batch_id: formData.batch_type === 'thawed' ? formData.batch_id : null,
+              batch_type: formData.batch_type,
+              quantity_discarded: parseInt(formData.quantity_discarded),
+              reason: formData.reason,
+              notes: formData.notes
+            })
+          });
+          
+          if (!wasteRes.ok) throw new Error('Failed to log waste');
+          
+          // Reload all affected data
+          const [wasteLogRes, batchesRes, thawedRefreshRes] = await Promise.all([
+            fetch('/api/waste'),
+            fetch('/api/purchases'),
+            fetch('/api/thawed')
+          ]);
+          
+          const [wasteLogData, batchesData, thawedRefreshData] = await Promise.all([
+            wasteLogRes.json(),
+            batchesRes.json(),
+            thawedRefreshRes.json()
+          ]);
+          
+          setWasteLog(wasteLogData);
+          setPurchaseBatches(batchesData);
+          setThawedBatches(thawedRefreshData);
+          break;
+      }
+      
+      closeModal();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setSubmitting(false);
     }
-    
-    closeModal();
   };
 
   const clearAlert = (alertId: string) => {
@@ -460,6 +338,37 @@ const NOODLTrackingApp = () => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
+
+  // Loading screen
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading NOODL Tracking...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error screen
+  if (error && !showModal) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center bg-white p-8 rounded-lg shadow">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Error Loading Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={loadAllData}
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const Dashboard = () => (
     <div className="space-y-6">
@@ -482,12 +391,20 @@ const NOODLTrackingApp = () => {
                 </div>
                 <div className="flex space-x-2 no-print">
                   <button
-                    onClick={() => openModal('waste', {
-                      batch_id: alert.batch_id,
-                      batch_type: alert.batch_type || 'purchase',
-                      product_name: alert.product_name,
-                      available_quantity: alert.quantity
-                    })}
+                    onClick={() => {
+                      const productId = alert.batch_type === 'thawed' 
+                        ? thawedBatches.find(b => b.id === alert.batch_id)?.purchase_batch?.product?.id ||
+                          purchaseBatches.find(b => b.id === thawedBatches.find(tb => tb.id === alert.batch_id)?.purchase_batch_id)?.product_id
+                        : purchaseBatches.find(b => b.id === alert.batch_id)?.product_id;
+                      
+                      openModal('waste', {
+                        batch_id: alert.batch_id,
+                        batch_type: alert.batch_type || 'purchase',
+                        product_name: alert.product_name,
+                        available_quantity: alert.quantity,
+                        product_id: productId
+                      });
+                    }}
                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                   >
                     Discard
@@ -530,7 +447,7 @@ const NOODLTrackingApp = () => {
         <h3 className="text-lg font-semibold mb-4">Recent Inventory</h3>
         <div className="space-y-3">
           {purchaseBatches.slice(0, 5).map(batch => {
-            const product = products.find(p => p.id === batch.product_id);
+            const product = batch.product || products.find(p => p.id === batch.product_id);
             return (
               <div key={batch.id} className="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <div>
@@ -635,7 +552,7 @@ const NOODLTrackingApp = () => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {purchaseBatches.map(batch => {
-              const product = products.find(p => p.id === batch.product_id);
+              const product = batch.product || products.find(p => p.id === batch.product_id);
               const daysUntilExpiry = Math.ceil((new Date(batch.best_before_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
               
               return (
@@ -658,6 +575,16 @@ const NOODLTrackingApp = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap no-print">
+                    <button
+                      onClick={() => openModal('editPurchase', {
+                        ...batch,
+                        product_id: batch.product_id
+                      })}
+                      className="text-blue-600 hover:text-blue-900 mr-3"
+                      title="Edit Purchase"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
                     {product?.received_state === 'Frozen' && batch.remaining_portions > 0 && (
                       <button
                         onClick={() => openModal('thaw', { 
@@ -667,6 +594,7 @@ const NOODLTrackingApp = () => {
                           available_portions: batch.remaining_portions 
                         })}
                         className="text-blue-600 hover:text-blue-900 mr-3"
+                        title="Thaw Portions"
                       >
                         Thaw
                       </button>
@@ -686,7 +614,9 @@ const NOODLTrackingApp = () => {
           <div className="space-y-3">
             {thawedBatches.map(thawBatch => {
               const purchaseBatch = purchaseBatches.find(p => p.id === thawBatch.purchase_batch_id);
-              const product = products.find(p => p.id === purchaseBatch?.product_id);
+              const product = thawBatch.purchase_batch?.product || 
+                             purchaseBatch?.product || 
+                             products.find(p => p.id === purchaseBatch?.product_id);
               const daysUntilExpiry = Math.ceil((new Date(thawBatch.expiry_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
               
               return (
@@ -736,7 +666,7 @@ const NOODLTrackingApp = () => {
               {wasteLog.map(waste => (
                 <tr key={waste.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{formatDate(waste.date_discarded)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium">{waste.product_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap font-medium">{waste.product?.name || 'Unknown'}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{waste.quantity_discarded} portions</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800 capitalize">
@@ -766,6 +696,12 @@ const NOODLTrackingApp = () => {
               <h2 className="text-xl font-bold mb-4">
                 {formData.id ? 'Edit Product' : 'Add New Product'}
               </h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium mb-1">Product Name</label>
@@ -860,13 +796,16 @@ const NOODLTrackingApp = () => {
                   type="button"
                   onClick={closeModal}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                  disabled={submitting}
                 >
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   {formData.id ? 'Update' : 'Add'} Product
                 </button>
               </div>
@@ -877,6 +816,12 @@ const NOODLTrackingApp = () => {
           return (
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <h2 className="text-xl font-bold mb-4">Log New Purchase</h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
               
               <div>
                 <label className="block text-sm font-medium mb-1">Product</label>
@@ -948,14 +893,130 @@ const NOODLTrackingApp = () => {
                   type="button"
                   onClick={closeModal}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center"
+                  disabled={submitting}
                 >
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Log Purchase
+                </button>
+              </div>
+            </form>
+          );
+
+        case 'editPurchase':
+          return (
+            <form onSubmit={handleFormSubmit} className="space-y-4">
+              <h2 className="text-xl font-bold mb-4">Edit Purchase Batch</h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
+              
+              <div className="bg-blue-50 p-3 rounded">
+                <div className="font-medium">
+                  {products.find(p => p.id === formData.product_id)?.name}
+                </div>
+                <div className="text-sm text-gray-600">
+                  Batch ID: {formData.id}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Purchase Date</label>
+                  <input
+                    type="date"
+                    value={formData.purchase_date?.split('T')[0] || ''}
+                    onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                    className="w-full border rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Best Before Date</label>
+                  <input
+                    type="date"
+                    value={formData.best_before_date?.split('T')[0] || ''}
+                    onChange={(e) => setFormData({...formData, best_before_date: e.target.value})}
+                    className="w-full border rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Quantity Received</label>
+                  <input
+                    type="number"
+                    value={formData.quantity_received || ''}
+                    onChange={(e) => setFormData({...formData, quantity_received: parseFloat(e.target.value)})}
+                    className="w-full border rounded-lg px-3 py-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Unit</label>
+                  <select
+                    value={formData.quantity_unit || ''}
+                    onChange={(e) => setFormData({...formData, quantity_unit: e.target.value})}
+                    className="w-full border rounded-lg px-3 py-2"
+                    required
+                  >
+                    <option value="">Select Unit</option>
+                    <option value="g">grams (g)</option>
+                    <option value="units">units</option>
+                    <option value="ml">milliliters (ml)</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">Remaining Portions</label>
+                <input
+                  type="number"
+                  value={formData.remaining_portions || ''}
+                  onChange={(e) => setFormData({...formData, remaining_portions: parseInt(e.target.value)})}
+                  className="w-full border rounded-lg px-3 py-2"
+                  min="0"
+                  max={formData.portioned_count || 999}
+                  required
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  Current total portions: {Math.floor((formData.quantity_received || 0) / 
+                    (products.find(p => p.id === formData.product_id)?.portion_size || 1))}
+                </div>
+              </div>
+              
+              <div className="bg-yellow-50 p-3 rounded text-sm text-yellow-800">
+                <strong>Note:</strong> Changing quantity will recalculate total portions. 
+                Make sure remaining portions doesn't exceed the new total.
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  disabled={submitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                  disabled={submitting}
+                >
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                  Update Purchase
                 </button>
               </div>
             </form>
@@ -965,6 +1026,12 @@ const NOODLTrackingApp = () => {
           return (
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <h2 className="text-xl font-bold mb-4">Thaw Portions</h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
               
               <div className="bg-gray-50 p-3 rounded">
                 <div className="font-medium">{formData.product_name}</div>
@@ -995,13 +1062,16 @@ const NOODLTrackingApp = () => {
                   type="button"
                   onClick={closeModal}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center"
+                  disabled={submitting}
                 >
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Thaw Portions
                 </button>
               </div>
@@ -1012,6 +1082,12 @@ const NOODLTrackingApp = () => {
           return (
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <h2 className="text-xl font-bold mb-4">Log Waste/Discard</h2>
+              
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
               
               <div className="bg-red-50 p-3 rounded">
                 <div className="font-medium">{formData.product_name}</div>
@@ -1064,13 +1140,16 @@ const NOODLTrackingApp = () => {
                   type="button"
                   onClick={closeModal}
                   className="px-4 py-2 border rounded-lg hover:bg-gray-50"
+                  disabled={submitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center"
+                  disabled={submitting}
                 >
+                  {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   Log Waste
                 </button>
               </div>
