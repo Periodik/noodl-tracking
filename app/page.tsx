@@ -842,22 +842,30 @@ const NOODLTrackingApp = () => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Purchase Date</label>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="YYYY-MM-DD (e.g., 2024-12-25)"
                     value={formData.purchase_date || new Date().toISOString().split('T')[0]}
                     onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
                     className="w-full border rounded-lg px-3 py-2"
+                    pattern="\d{4}-\d{2}-\d{2}"
+                    title="Please enter date in YYYY-MM-DD format"
                     required
                   />
+                  <div className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD</div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Best Before Date</label>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="YYYY-MM-DD (e.g., 2024-12-31)"
                     value={formData.best_before_date || ''}
                     onChange={(e) => setFormData({...formData, best_before_date: e.target.value})}
                     className="w-full border rounded-lg px-3 py-2"
+                    pattern="\d{4}-\d{2}-\d{2}"
+                    title="Please enter date in YYYY-MM-DD format"
                     required
                   />
+                  <div className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD</div>
                 </div>
               </div>
               
@@ -933,22 +941,30 @@ const NOODLTrackingApp = () => {
                 <div>
                   <label className="block text-sm font-medium mb-1">Purchase Date</label>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="YYYY-MM-DD (e.g., 2024-12-25)"
                     value={formData.purchase_date?.split('T')[0] || ''}
                     onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
                     className="w-full border rounded-lg px-3 py-2"
+                    pattern="\d{4}-\d{2}-\d{2}"
+                    title="Please enter date in YYYY-MM-DD format"
                     required
                   />
+                  <div className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD</div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Best Before Date</label>
                   <input
-                    type="date"
+                    type="text"
+                    placeholder="YYYY-MM-DD (e.g., 2024-12-31)"
                     value={formData.best_before_date?.split('T')[0] || ''}
                     onChange={(e) => setFormData({...formData, best_before_date: e.target.value})}
                     className="w-full border rounded-lg px-3 py-2"
+                    pattern="\d{4}-\d{2}-\d{2}"
+                    title="Please enter date in YYYY-MM-DD format"
                     required
                   />
+                  <div className="text-xs text-gray-500 mt-1">Format: YYYY-MM-DD</div>
                 </div>
               </div>
               
