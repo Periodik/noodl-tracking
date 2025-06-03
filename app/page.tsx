@@ -83,7 +83,7 @@ const NOODLTrackingApp = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showModal, setShowModal] = useState(false);
   const [modalType, setModalType] = useState('');
-  const [formData, setFormData] = useState<any>({});
+  const [formData, setFormData] = useState<Record<string, any>>({});
 
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -708,7 +708,7 @@ const NOODLTrackingApp = () => {
                 <input
                   type="text"
                   value={formData.name || ''}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 />
@@ -718,7 +718,7 @@ const NOODLTrackingApp = () => {
                 <label className="block text-sm font-medium mb-1">Received State</label>
                 <select
                   value={formData.received_state || ''}
-                  onChange={(e) => setFormData({...formData, received_state: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, received_state: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 >
@@ -735,7 +735,7 @@ const NOODLTrackingApp = () => {
                     type="number"
                     step="0.01"
                     value={formData.portion_size || ''}
-                    onChange={(e) => setFormData({...formData, portion_size: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, portion_size: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Enter portion size"
                     required
@@ -745,7 +745,7 @@ const NOODLTrackingApp = () => {
                   <label className="block text-sm font-medium mb-1">Unit</label>
                   <select
                     value={formData.portion_unit || ''}
-                    onChange={(e) => setFormData({...formData, portion_unit: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, portion_unit: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     required
                   >
@@ -764,7 +764,7 @@ const NOODLTrackingApp = () => {
                     type="number"
                     min="0"
                     value={formData.shelf_life_fresh || ''}
-                    onChange={(e) => setFormData({...formData, shelf_life_fresh: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, shelf_life_fresh: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Enter days"
                     required
@@ -779,7 +779,7 @@ const NOODLTrackingApp = () => {
                     type="number"
                     min="0"
                     value={formData.shelf_life_thawed || ''}
-                    onChange={(e) => setFormData({...formData, shelf_life_thawed: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, shelf_life_thawed: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Enter days"
                     required
@@ -791,7 +791,7 @@ const NOODLTrackingApp = () => {
                 <input
                   type="checkbox"
                   checked={formData.track_by_unit || false}
-                  onChange={(e) => setFormData({...formData, track_by_unit: e.target.checked})}
+                  onChange={(e) => setFormData(prev => ({...prev, track_by_unit: e.target.checked}))}
                   className="mr-2"
                 />
                 <label className="text-sm">Track by individual units (e.g., eggs)</label>
@@ -833,7 +833,7 @@ const NOODLTrackingApp = () => {
                 <label className="block text-sm font-medium mb-1">Product</label>
                 <select
                   value={formData.product_id || ''}
-                  onChange={(e) => setFormData({...formData, product_id: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, product_id: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 >
@@ -851,7 +851,7 @@ const NOODLTrackingApp = () => {
                     type="text"
                     placeholder="YYYY-MM-DD (e.g., 2024-12-25)"
                     value={formData.purchase_date || new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, purchase_date: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     pattern="\d{4}-\d{2}-\d{2}"
                     title="Please enter date in YYYY-MM-DD format"
@@ -865,7 +865,7 @@ const NOODLTrackingApp = () => {
                     type="text"
                     placeholder="YYYY-MM-DD (e.g., 2024-12-31)"
                     value={formData.best_before_date || ''}
-                    onChange={(e) => setFormData({...formData, best_before_date: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, best_before_date: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     pattern="\d{4}-\d{2}-\d{2}"
                     title="Please enter date in YYYY-MM-DD format"
@@ -882,7 +882,7 @@ const NOODLTrackingApp = () => {
                     type="number"
                     step="0.01"
                     value={formData.quantity_received || ''}
-                    onChange={(e) => setFormData({...formData, quantity_received: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, quantity_received: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Enter quantity"
                     required
@@ -892,7 +892,7 @@ const NOODLTrackingApp = () => {
                   <label className="block text-sm font-medium mb-1">Unit</label>
                   <select
                     value={formData.quantity_unit || ''}
-                    onChange={(e) => setFormData({...formData, quantity_unit: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, quantity_unit: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     required
                   >
@@ -952,7 +952,7 @@ const NOODLTrackingApp = () => {
                     type="text"
                     placeholder="YYYY-MM-DD (e.g., 2024-12-25)"
                     value={formData.purchase_date?.split('T')[0] || ''}
-                    onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, purchase_date: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     pattern="\d{4}-\d{2}-\d{2}"
                     title="Please enter date in YYYY-MM-DD format"
@@ -966,7 +966,7 @@ const NOODLTrackingApp = () => {
                     type="text"
                     placeholder="YYYY-MM-DD (e.g., 2024-12-31)"
                     value={formData.best_before_date?.split('T')[0] || ''}
-                    onChange={(e) => setFormData({...formData, best_before_date: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, best_before_date: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     pattern="\d{4}-\d{2}-\d{2}"
                     title="Please enter date in YYYY-MM-DD format"
@@ -982,7 +982,7 @@ const NOODLTrackingApp = () => {
                   <input
                     type="number"
                     value={formData.quantity_received || ''}
-                    onChange={(e) => setFormData({...formData, quantity_received: parseFloat(e.target.value)})}
+                    onChange={(e) => setFormData(prev => ({...prev, quantity_received: parseFloat(e.target.value)}))}
                     className="w-full border rounded-lg px-3 py-2"
                     required
                   />
@@ -991,7 +991,7 @@ const NOODLTrackingApp = () => {
                   <label className="block text-sm font-medium mb-1">Unit</label>
                   <select
                     value={formData.quantity_unit || ''}
-                    onChange={(e) => setFormData({...formData, quantity_unit: e.target.value})}
+                    onChange={(e) => setFormData(prev => ({...prev, quantity_unit: e.target.value}))}
                     className="w-full border rounded-lg px-3 py-2"
                     required
                   >
@@ -1008,7 +1008,7 @@ const NOODLTrackingApp = () => {
                 <input
                   type="number"
                   value={formData.remaining_portions || ''}
-                  onChange={(e) => setFormData({...formData, remaining_portions: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData(prev => ({...prev, remaining_portions: parseInt(e.target.value)}))}
                   className="w-full border rounded-lg px-3 py-2"
                   min="0"
                   max={formData.portioned_count || 999}
@@ -1071,7 +1071,7 @@ const NOODLTrackingApp = () => {
                   max={formData.available_portions}
                   min="1"
                   value={formData.portions_to_thaw || ''}
-                  onChange={(e) => setFormData({...formData, portions_to_thaw: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, portions_to_thaw: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 />
@@ -1127,7 +1127,7 @@ const NOODLTrackingApp = () => {
                   max={formData.available_quantity}
                   min="1"
                   value={formData.quantity_discarded || ''}
-                  onChange={(e) => setFormData({...formData, quantity_discarded: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, quantity_discarded: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 />
@@ -1137,7 +1137,7 @@ const NOODLTrackingApp = () => {
                 <label className="block text-sm font-medium mb-1">Reason</label>
                 <select
                   value={formData.reason || ''}
-                  onChange={(e) => setFormData({...formData, reason: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, reason: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 >
@@ -1153,7 +1153,7 @@ const NOODLTrackingApp = () => {
                 <label className="block text-sm font-medium mb-1">Notes (Optional)</label>
                 <textarea
                   value={formData.notes || ''}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  onChange={(e) => setFormData(prev => ({...prev, notes: e.target.value}))}
                   className="w-full border rounded-lg px-3 py-2"
                   rows={3}
                 />
