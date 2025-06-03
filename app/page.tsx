@@ -263,7 +263,7 @@ const NOODLTrackingApp = () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              purchase_batch_id: formData.batch_id,
+              purchase_batch_id: formData.purchase_batch_id,
               portions_thawed: parseInt(formData.portions_to_thaw)
             })
           });
@@ -588,7 +588,7 @@ const NOODLTrackingApp = () => {
                     {product?.received_state === 'Frozen' && batch.remaining_portions > 0 && (
                       <button
                         onClick={() => openModal('thaw', { 
-                          batch_id: batch.id, 
+                          purchase_batch_id: batch.id, 
                           product_id: batch.product_id,
                           product_name: product?.name,
                           available_portions: batch.remaining_portions 

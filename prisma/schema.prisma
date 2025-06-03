@@ -32,6 +32,7 @@ model Product {
 model PurchaseBatch {
   id                 String @id @default(cuid())
   product_id         String
+  batch_id           String @unique // Physical batch ID written on package
   purchase_date      DateTime
   best_before_date   DateTime
   quantity_received  Float
