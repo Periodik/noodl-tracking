@@ -40,7 +40,9 @@ export async function POST(request: NextRequest) {
     
     const purchase = await prisma.purchaseBatch.create({
       data: {
-        product_id: body.product_id,
+        product: {
+          connect: { id: body.product_id }
+        },
         purchase_date: new Date(body.purchase_date),
         best_before_date: new Date(body.best_before_date),
         quantity_received: parseFloat(body.quantity_received),
