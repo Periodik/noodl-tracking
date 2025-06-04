@@ -689,7 +689,7 @@ const NOODLTrackingApp = () => {
     </div>
   );
 
-  const Modal = () => {
+  const Modal = React.memo(() => {
     if (!showModal) return null;
 
     const renderModalContent = () => {
@@ -1170,7 +1170,7 @@ const NOODLTrackingApp = () => {
         </div>
       </div>
     );
-  };
+  });
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -1228,7 +1228,7 @@ const NOODLTrackingApp = () => {
       </main>
 
       {/* Modal */}
-      <Modal />
+      {showModal && <Modal key={modalType} />}
     </div>
   );
 };
