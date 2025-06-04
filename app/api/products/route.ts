@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/db'
 
 export async function GET() {
   try {
@@ -11,24 +9,22 @@ export async function GET() {
     return NextResponse.json(products)
   } catch (error) {
     console.error('Error fetching products:', error)
-    return NextResponse.json({ 
-      error: 'Failed to fetch products',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to fetch products' },
+      { status: 500 }
+    )
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    console.log('Creating product with data:', body)
     
-    // Validate required fields
     if (!body.name || !body.received_state || !body.portion_unit) {
-      return NextResponse.json({ 
-        error: 'Missing required fields',
-        details: 'name, received_state, and portion_unit are required'
-      }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
     }
     
     const product = await prisma.product.create({
@@ -43,21 +39,27 @@ export async function POST(request: NextRequest) {
       }
     })
     
-    console.log('Product created successfully:', product)
     return NextResponse.json(product)
   } catch (error) {
     console.error('Error creating product:', error)
-    return NextResponse.json({ 
-      error: 'Failed to create product',
-      details: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
-    }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to create product' },
+      { status: 500 }
+    )
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
+    
+    if (!body.id) {
+      return NextResponse.json(
+        { error: 'Product ID is required' },
+        { status: 400 }
+      )
+    }
+    
     const product = await prisma.product.update({
       where: { id: body.id },
       data: {
@@ -70,12 +72,13 @@ export async function PUT(request: NextRequest) {
         track_by_unit: Boolean(body.track_by_unit)
       }
     })
+    
     return NextResponse.json(product)
   } catch (error) {
     console.error('Error updating product:', error)
-    return NextResponse.json({ 
-      error: 'Failed to update product',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to update product' },
+      { status: 500 }
+    )
   }
 }

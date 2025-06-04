@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -32,7 +29,7 @@ model Product {
 model PurchaseBatch {
   id                 String @id @default(cuid())
   product_id         String
-  batch_id           String @unique // Physical batch ID written on package
+  batch_id           String @unique
   purchase_date      DateTime
   best_before_date   DateTime
   quantity_received  Float
@@ -59,7 +56,7 @@ model ThawedBatch {
   thaw_date          DateTime
   portions_thawed    Int
   expiry_date        DateTime
-  status             String @default("active") // "active", "expired", "used"
+  status             String @default("active")
   remaining_portions Int
   created_at         DateTime @default(now())
   updated_at         DateTime @updatedAt
@@ -76,10 +73,10 @@ model WasteEntry {
   product_id         String
   purchase_batch_id  String?
   thawed_batch_id    String?
-  batch_type         String? // "purchase" or "thawed"
+  batch_type         String?
   date_discarded     DateTime
   quantity_discarded Int
-  reason             String // "expired", "spoiled", "contaminated", "other"
+  reason             String
   notes              String?
   discarded_by       String?
   created_at         DateTime @default(now())
