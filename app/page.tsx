@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Calendar, AlertTriangle, Package, Trash2, Edit, Eye, X, Check, Loader2 } from 'lucide-react';
 
 interface Product {
@@ -193,7 +193,11 @@ const NOODLTrackingApp = () => {
     return 'bg-green-100 border-green-500 text-green-800';
   };
 
-  const openModal = (type: string, data: any = {}) => {
+  const updateFormData = useCallback((field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const openModal = (type: string, data: Record<string, any> = {}) => {
     setModalType(type);
     setFormData(data);
     setShowModal(true);
@@ -708,7 +712,7 @@ const NOODLTrackingApp = () => {
                 <input
                   type="text"
                   value={formData.name || ''}
-                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                  onChange={(e) => updateFormData('name', e.target.value)}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 />
@@ -718,7 +722,7 @@ const NOODLTrackingApp = () => {
                 <label className="block text-sm font-medium mb-1">Received State</label>
                 <select
                   value={formData.received_state || ''}
-                  onChange={(e) => setFormData(prev => ({...prev, received_state: e.target.value}))}
+                  onChange={(e) => updateFormData('received_state', e.target.value)}
                   className="w-full border rounded-lg px-3 py-2"
                   required
                 >
@@ -735,7 +739,7 @@ const NOODLTrackingApp = () => {
                     type="number"
                     step="0.01"
                     value={formData.portion_size || ''}
-                    onChange={(e) => setFormData(prev => ({...prev, portion_size: e.target.value}))}
+                    onChange={(e) => updateFormData('portion_size', e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Enter portion size"
                     required
@@ -745,7 +749,7 @@ const NOODLTrackingApp = () => {
                   <label className="block text-sm font-medium mb-1">Unit</label>
                   <select
                     value={formData.portion_unit || ''}
-                    onChange={(e) => setFormData(prev => ({...prev, portion_unit: e.target.value}))}
+                    onChange={(e) => updateFormData('portion_unit', e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
                     required
                   >
@@ -851,7 +855,7 @@ const NOODLTrackingApp = () => {
                     type="text"
                     placeholder="YYYY-MM-DD (e.g., 2024-12-25)"
                     value={formData.purchase_date || new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setFormData(prev => ({...prev, purchase_date: e.target.value}))}
+                    onChange={(e) => updateFormData('purchase_date', e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
                     pattern="\d{4}-\d{2}-\d{2}"
                     title="Please enter date in YYYY-MM-DD format"
@@ -865,7 +869,7 @@ const NOODLTrackingApp = () => {
                     type="text"
                     placeholder="YYYY-MM-DD (e.g., 2024-12-31)"
                     value={formData.best_before_date || ''}
-                    onChange={(e) => setFormData(prev => ({...prev, best_before_date: e.target.value}))}
+                    onChange={(e) => updateFormData('best_before_date', e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
                     pattern="\d{4}-\d{2}-\d{2}"
                     title="Please enter date in YYYY-MM-DD format"
@@ -882,7 +886,7 @@ const NOODLTrackingApp = () => {
                     type="number"
                     step="0.01"
                     value={formData.quantity_received || ''}
-                    onChange={(e) => setFormData(prev => ({...prev, quantity_received: e.target.value}))}
+                    onChange={(e) => updateFormData('quantity_received', e.target.value)}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="Enter quantity"
                     required
